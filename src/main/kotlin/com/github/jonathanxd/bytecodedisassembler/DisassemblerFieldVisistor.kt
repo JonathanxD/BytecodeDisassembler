@@ -50,6 +50,8 @@ class DisassemblerFieldVisistor(val access: Int,
 
         appender.append("$modsStr ${Util.parseType(desc)} $name$ext")
 
+        appender.flush()
+
         super.visitEnd()
     }
 

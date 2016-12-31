@@ -66,6 +66,27 @@ internal object Util {
     const val METHOD = 2
     const val PARAMETER = 3
 
+    fun parseRet(desc: String?): String? {
+        if (desc == null)
+            return null
+
+        return Type.getMethodType(desc).returnType.className
+    }
+
+    fun parseParams(desc: String?): String? {
+        if (desc == null)
+            return null
+
+        return Type.getMethodType(desc).argumentTypes.map { it.className }.joinToString()
+    }
+
+    fun parseDesc(desc: String?): String? {
+        if (desc == null)
+            return null
+
+        return "(${parseParams(desc)})${parseRet(desc)}"
+    }
+
     fun parseType(type: String?): String? {
         if (type == null)
             return null
@@ -249,17 +270,48 @@ internal object Util {
     }
 
     inline fun visitAnnotation(appender: Appender, desc: String?, api: Int, end: String = "", superInvk: () -> AnnotationVisitor?): AnnotationVisitor {
+        return this.visitAnnotation(appender, { Appender.Buffered(it) }, desc, api, end, superInvk)
+    }
 
-        appender.append("@$desc(")
+    inline fun visitAnnotation(appender: Appender, func: (Appender) -> Appender, desc: String?, api: Int, end: String = "", superInvk: () -> AnnotationVisitor?): AnnotationVisitor {
 
-        return DisassemblerAnnotationVisistor(appender, ")$end", api, superInvk())
+        val bufferedAppender = func(appender)
+        appender.append("")
+
+        val x = if (desc != null) {
+            bufferedAppender.append("@${Util.parseType(desc)}(")
+            ")"
+        } else ""
+
+        return DisassemblerAnnotationVisitor(bufferedAppender, "$x$end", api, superInvk())
+    }
+
+    fun parseArrayValue(value: Any?): String {
+        if (value == null)
+            return "null"
+
+        if (value is Type)
+            return value.className
+
+        if (value.javaClass.isArray) {
+            val length = java.lang.reflect.Array.getLength(value)
+            val ret = Array<Any?>(length) { java.lang.reflect.Array.get(value, it) }
+
+            return parseArray(ret)
+        }
+
+        return value.toString()
+    }
+
+    private fun parseArray(array: Array<out Any?>): String {
+        return array.map { this.parseArrayValue(it) }.joinToString(separator = ", ", prefix = "{", postfix = "}")
     }
 
     fun parseLocalsOrStack(array: Array<out Any?>?): String {
         if (array == null)
             return "{}"
 
-        if(array.all { it == null })
+        if (array.all { it == null })
             return "{}"
 
         val joiner = StringJoiner(", ", "{", "}")
@@ -270,7 +322,7 @@ internal object Util {
                         "null"
                     else if (it is Int)
                         Util.getSpecialName(it)
-                    else if(it is String)
+                    else if (it is String)
                         Util.parseType(it)
                     else
                         it.toString()

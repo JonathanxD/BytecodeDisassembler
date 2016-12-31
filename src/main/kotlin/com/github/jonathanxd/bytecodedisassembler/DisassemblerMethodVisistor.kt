@@ -42,12 +42,20 @@ class DisassemblerMethodVisistor(
 
     private val subAppender = Appender.FourIdent(this.appender)
     private val wAppender = Appender.TwoIdent(this.appender)
+    private var visitCode = false
 
     private val labelMapper = LabelMapper()
 
     override fun visitAnnotationDefault(): AnnotationVisitor {
-        appender.append("default: ")
-        return DisassemblerAnnotationVisistor(appender, null, api, super.visitAnnotationDefault())
+
+        if(!visitCode)
+            visit() // Fix visit
+
+        val buffered = Appender.Buffered(this.wAppender)
+
+        buffered.append("default: ")
+
+        return Util.visitAnnotation(buffered, null, api, "", { super.visitAnnotationDefault() })
     }
 
     override fun visitAnnotation(desc: String?, visible: Boolean): AnnotationVisitor {
@@ -61,8 +69,7 @@ class DisassemblerMethodVisistor(
     }
 
 
-    override fun visitCode() {
-
+    private fun visit() {
         appender.append("!access: $access (${Util.parseAccess(Util.METHOD, access)})")
 
         signature?.let{
@@ -71,7 +78,18 @@ class DisassemblerMethodVisistor(
 
         val modsStr = Util.parseAsModifiersStr(Util.METHOD, access)
         val ext = if(exceptions != null && exceptions.isNotEmpty()) " throws ${exceptions.map { Util.parseType(it) }.joinToString()}" else ""
-        appender.append("$modsStr $name$desc$ext {")
+
+        val ret = Util.parseRet(desc)
+        val parm = Util.parseParams(desc)
+
+        appender.append("$modsStr $ret $name($parm)$ext {")
+
+        visitCode = true
+    }
+
+    override fun visitCode() {
+
+        visit()
 
         super.visitCode()
     }
@@ -177,11 +195,11 @@ class DisassemblerMethodVisistor(
     override fun visitInvokeDynamicInsn(name: String?, desc: String?, bsm: Handle?, vararg bsmArgs: Any?) {
 
         fun Handle?.asStr() =
-            if(this == null) "null" else "${Util.parseType(this.owner)}.${this.name}(${this.desc}) (tag: ${Util.getHandleTagName(this.tag)}, itf: ${this.isInterface})"
+            if(this == null) "null" else "${Util.parseType(this.owner)}.${this.name}${Util.parseDesc(this.desc)} (tag: ${Util.getHandleTagName(this.tag)}, itf: ${this.isInterface})"
 
         val bsmArgsStr = bsmArgs.map { (it as? Handle)?.asStr() ?: it.toString() }
 
-        subAppender.append("invokeDynamic $name$desc (bootstrap: ${bsm.asStr()}, args: $bsmArgsStr)")
+        subAppender.append("invokedynamic $name${Util.parseDesc(desc)} (bootstrap: ${bsm.asStr()}, args: $bsmArgsStr)")
 
         super.visitInvokeDynamicInsn(name, desc, bsm, *bsmArgs)
     }
@@ -196,13 +214,13 @@ class DisassemblerMethodVisistor(
     }
 
     override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, desc: String?) {
-        subAppender.append("${Util.getOpcodeName(opcode)} ${Util.parseType(owner)}.$name$desc")
+        subAppender.append("${Util.getOpcodeName(opcode)} ${Util.parseType(owner)}.$name${Util.parseDesc(desc)}")
 
         super.visitMethodInsn(opcode, owner, name, desc)
     }
 
     override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, desc: String?, itf: Boolean) {
-        subAppender.append("${Util.getOpcodeName(opcode)} ${Util.parseType(owner)}.$name$desc (ownerIsInterface: $itf)")
+        subAppender.append("${Util.getOpcodeName(opcode)} ${Util.parseType(owner)}.$name${Util.parseDesc(desc)} (ownerIsInterface: $itf)")
 
         super.visitMethodInsn(opcode, owner, name, desc, itf)
     }
@@ -228,9 +246,11 @@ class DisassemblerMethodVisistor(
 
     override fun visitParameterAnnotation(parameter: Int, desc: String?, visible: Boolean): AnnotationVisitor {
 
-        subAppender.append("!parameterAnnotation(parameter: $parameter) [")
+        val buffered = Appender.Buffered(this.appender)
 
-        return Util.visitAnnotation(subAppender, desc, api, "]", {super.visitParameterAnnotation(parameter, desc, visible)})
+        buffered.append("!parameterAnnotation(parameter: $parameter) [")
+
+        return Util.visitAnnotation(buffered, desc, api, "]", {super.visitParameterAnnotation(parameter, desc, visible)})
     }
 
     override fun visitLocalVariable(name: String?, desc: String?, signature: String?, start: Label?, end: Label?, index: Int) {
@@ -253,7 +273,11 @@ class DisassemblerMethodVisistor(
     }
 
     override fun visitEnd() {
+        if(!visitCode)
+            visit()
+
         appender.append("}")
+        appender.flush()
         super.visitEnd()
     }
 

@@ -30,12 +30,21 @@ package com.github.jonathanxd.bytecodedisassembler
 import org.objectweb.asm.*
 import java.util.*
 
-class DisassemblerAnnotationVisistor(val appender: Appender, val end: String? = null, api: Int = Opcodes.ASM5, parent: AnnotationVisitor? = null) : AnnotationVisitor(api, parent) {
+class DisassemblerAnnotationVisitor(val appender: Appender, val end: String? = null, api: Int = Opcodes.ASM5, parent: AnnotationVisitor? = null) : AnnotationVisitor(api, parent) {
     override fun visitEnd() {
 
         end?.let {
-            appender.append(it)
+            if(it.isNotEmpty()) {
+                if(appender is Appender.BufferedJoiner) {
+                    appender.flush()
+                    appender.appender.append(it)
+                } else {
+                    appender.append(it)
+                }
+            }
         }
+
+        appender.flush()
 
         super.visitEnd()
     }
@@ -47,14 +56,16 @@ class DisassemblerAnnotationVisistor(val appender: Appender, val end: String? = 
             appender.append("@$desc(")
         }
 
-        return DisassemblerAnnotationVisistor(this.appender, ")", api, super.visitAnnotation(name, desc))
+        return Util.visitAnnotation(Appender.NoFlush(this.appender), desc, api, ")", {super.visitAnnotation(name, desc)})
     }
 
     override fun visitEnum(name: String?, desc: String?, value: String?) {
+        val descStr = Util.parseType(desc)
+
         if(name != null) {
-            appender.append("$name = $desc.$value")
+            appender.append("$name = $descStr.$value")
         } else {
-            appender.append("$desc.$value")
+            appender.append("$descStr.$value")
         }
 
         super.visitEnum(name, desc, value)
@@ -62,14 +73,18 @@ class DisassemblerAnnotationVisistor(val appender: Appender, val end: String? = 
 
     override fun visit(name: String?, value: Any?) {
 
+        val valueStr = Util.parseArrayValue(value)
+
         if(name != null) {
-            appender.append("$name = $value")
+            appender.append("$name = $valueStr")
         } else {
-            appender.append("$value")
+            appender.append(valueStr)
         }
 
         super.visit(name, value)
     }
+
+
 
     override fun visitArray(name: String?): AnnotationVisitor {
 
@@ -79,6 +94,6 @@ class DisassemblerAnnotationVisistor(val appender: Appender, val end: String? = 
             appender.append("{")
         }
 
-        return DisassemblerAnnotationVisistor(this.appender, "}", api, super.visitArray(name))
+        return Util.visitAnnotation(appender, {Appender.BufferedJoiner(StringJoiner(", "), Appender.NoFlush(it))}, null, api, "}", {super.visitArray(name)})
     }
 }

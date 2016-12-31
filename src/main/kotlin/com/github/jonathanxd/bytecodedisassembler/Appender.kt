@@ -33,12 +33,19 @@ interface Appender {
 
     fun append(str: String)
 
+    fun flush() {
+    }
+
     override fun toString(): String
 
     class FourIdent(private val appender: Appender): Appender {
 
         override fun append(str: String) {
             this.appender.append("    $str")
+        }
+
+        override fun flush() {
+            this.appender.flush()
         }
 
         override fun toString(): String = this.appender.toString()
@@ -50,6 +57,10 @@ interface Appender {
             this.appender.append("  $str")
         }
 
+        override fun flush() {
+            this.appender.flush()
+        }
+
         override fun toString(): String = this.appender.toString()
     }
 
@@ -59,6 +70,69 @@ interface Appender {
         }
 
         override fun toString(): String = this.joiner.toString()
+    }
+
+    class Later(private val appender: Appender): Appender {
+        private val appends = mutableListOf<String>()
+
+        override fun append(str: String) {
+            this.appends.add(str)
+        }
+
+        override fun flush() {
+            this.appends.forEach {
+                this.appender.append(it)
+            }
+
+            this.appends.clear()
+            this.appender.flush()
+        }
+
+        override fun toString(): String = this.appender.toString()
+    }
+
+    class BufferedJoiner(private val joiner: StringJoiner, val appender: Appender): Appender {
+        var flushed = false
+
+        override fun append(str: String) {
+            this.joiner.add(str)
+        }
+
+        override fun flush() {
+            if(!flushed) {
+                this.appender.append(this.joiner.toString())
+                this.appender.flush()
+                flushed = true
+            }
+
+        }
+
+        override fun toString(): String = this.joiner.toString()
+    }
+
+    class Buffered(private val appender: Appender): Appender {
+        private val buffer = StringBuilder()
+
+        override fun append(str: String) {
+            this.buffer.append(str)
+        }
+
+        override fun flush() {
+            val str = this.buffer.toString()
+            this.buffer.setLength(0)
+            this.appender.append(str)
+            this.appender.flush()
+        }
+
+        override fun toString(): String = this.appender.toString()
+    }
+
+    class NoFlush(private val appender: Appender): Appender by appender {
+        override fun flush() {
+
+        }
+
+        override fun toString(): String = this.appender.toString()
     }
 
 }

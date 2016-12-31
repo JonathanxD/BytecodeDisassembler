@@ -31,6 +31,9 @@ import org.objectweb.asm.*
 
 class DisassemblerClassVisitor(val appendFrames: Boolean, val appender: Appender, api: Int = Opcodes.ASM5, parent: ClassVisitor? = null) : ClassVisitor(api, parent) {
 
+    private val later = Appender.Later(appender)
+
+
     override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
         appender.append("")
 
@@ -46,12 +49,13 @@ class DisassemblerClassVisitor(val appendFrames: Boolean, val appender: Appender
         val modsStr = Util.parseAsModifiersStr(Util.CLASS, access)
         val ext = if (superName != null) " extends ${Util.parseType(superName)}" else ""
         val ext2 = if (interfaces != null && interfaces.isNotEmpty()) " implements ${interfaces.map { Util.parseType(it) }.joinToString()}" else ""
-        appender.append("$modsStr class ${Util.parseType(name)}$ext$ext2 {")
+        later.append("$modsStr class ${Util.parseType(name)}$ext$ext2 {")
 
         super.visit(version, access, name, signature, superName, interfaces)
     }
 
     override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor {
+        later.flush()
         appender.append("")
         return DisassemblerMethodVisistor(
                 appendFrames = appendFrames,
@@ -72,7 +76,7 @@ class DisassemblerClassVisitor(val appendFrames: Boolean, val appender: Appender
     }
 
     override fun visitSource(source: String?, debug: String?) {
-        appender.append("    [source: $source, debug: $debug]")
+        appender.append("source: $source, debug: $debug")
         super.visitSource(source, debug)
     }
 
@@ -82,6 +86,7 @@ class DisassemblerClassVisitor(val appendFrames: Boolean, val appender: Appender
     }
 
     override fun visitField(access: Int, name: String?, desc: String?, signature: String?, value: Any?): FieldVisitor {
+        later.flush()
         appender.append("")
         return DisassemblerFieldVisistor(
                 access = access,
@@ -96,7 +101,9 @@ class DisassemblerClassVisitor(val appendFrames: Boolean, val appender: Appender
     }
 
     override fun visitEnd() {
+        later.flush()
         appender.append("}")
+        appender.flush()
         super.visitEnd()
     }
 
