@@ -46,6 +46,13 @@ public class DisassemblerTest {
     }
 
     @Test
+    public void disassembler2Test() throws IOException {
+
+        final String disassembled = disassemble("/Reflection.class");
+        System.out.println(disassembled);
+    }
+
+    @Test
     public void annotatedTest() {
         final String disassembled = disassemble("/AnnotatedTest_AnnotatedTestClass_Result.class");
         System.out.println(disassembled);

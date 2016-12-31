@@ -63,7 +63,7 @@ class DisassemblerMethodVisistor(
     }
 
     override fun visitMaxs(maxStack: Int, maxLocals: Int) {
-        subAppender.append("MAX_STACK: $maxStack, MAX_LOCALS: $maxLocals")
+        wAppender.append("MAX_STACK: $maxStack, MAX_LOCALS: $maxLocals")
 
         super.visitMaxs(maxStack, maxLocals)
     }
@@ -180,7 +180,7 @@ class DisassemblerMethodVisistor(
         if(operand == Opcodes.NEWARRAY) {
             subAppender.append("newarray ${Util.getTypeName(operand)}")
         } else {
-            subAppender.append("${Util.getOpcodeName(opcode)} ${Util.getOpcodeName(operand)}")
+            subAppender.append("${Util.getOpcodeName(opcode)} $operand")
         }
 
         super.visitIntInsn(opcode, operand)
@@ -238,8 +238,8 @@ class DisassemblerMethodVisistor(
     }
 
     override fun visitLineNumber(line: Int, start: Label?) {
-        val ext = if(start != null) " start ${labelMapper.getLabelName(start)}" else ""
-        subAppender.append("!line $line$ext")
+        val ext = if(start != null) " -> ${labelMapper.getLabelName(start)}" else ""
+        wAppender.append(" LINE $line$ext")
 
         super.visitLineNumber(line, start)
     }
@@ -255,7 +255,7 @@ class DisassemblerMethodVisistor(
 
     override fun visitLocalVariable(name: String?, desc: String?, signature: String?, start: Label?, end: Label?, index: Int) {
 
-        subAppender.append("!localVariable[index: $index, name: $name, desc: $desc, signature: $signature, start: ${labelMapper.getLabelName(start)}, end: ${labelMapper.getLabelName(end)}]")
+        wAppender.append("LOCAL_VARIABLE[index: $index, name: $name, desc: $desc, signature: $signature, start: ${labelMapper.getLabelName(start)}, end: ${labelMapper.getLabelName(end)}]")
 
         super.visitLocalVariable(name, desc, signature, start, end, index)
     }

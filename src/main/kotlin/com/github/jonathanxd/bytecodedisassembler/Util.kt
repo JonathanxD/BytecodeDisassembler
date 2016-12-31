@@ -283,7 +283,7 @@ internal object Util {
             ")"
         } else ""
 
-        return DisassemblerAnnotationVisitor(bufferedAppender, "$x$end", api, superInvk())
+        return DisassemblerAnnotationVisitor(Appender.BufferedJoiner(StringJoiner(", "), bufferedAppender), "$x$end", api, superInvk())
     }
 
     fun parseArrayValue(value: Any?): String {
