@@ -248,7 +248,7 @@ internal object Util {
         if (str != null) this.add(str)
     }
 
-    inline fun visitAnnotation(appender: Appender, desc: String?, api: Int, end: String = "", superInvk: () -> AnnotationVisitor): AnnotationVisitor {
+    inline fun visitAnnotation(appender: Appender, desc: String?, api: Int, end: String = "", superInvk: () -> AnnotationVisitor?): AnnotationVisitor {
 
         appender.append("@$desc(")
 
