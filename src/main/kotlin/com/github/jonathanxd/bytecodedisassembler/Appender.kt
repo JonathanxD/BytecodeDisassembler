@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2016 JonathanxD <${email}>
+ *      Copyright (c) 2017 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -38,10 +38,10 @@ interface Appender {
 
     override fun toString(): String
 
-    class FourIdent(private val appender: Appender): Appender {
+    class FourIndent(private val appender: Appender) : Appender {
 
         override fun append(str: String) {
-            this.appender.append("    $str")
+            this.appender.append(str indent "    ")
         }
 
         override fun flush() {
@@ -51,10 +51,10 @@ interface Appender {
         override fun toString(): String = this.appender.toString()
     }
 
-    class TwoIdent(private val appender: Appender): Appender {
+    class TwoIndent(private val appender: Appender) : Appender {
 
         override fun append(str: String) {
-            this.appender.append("  $str")
+            this.appender.append(str indent "  ")
         }
 
         override fun flush() {
@@ -64,7 +64,7 @@ interface Appender {
         override fun toString(): String = this.appender.toString()
     }
 
-    class Joiner(private val joiner: StringJoiner): Appender {
+    class Joiner(private val joiner: StringJoiner) : Appender {
         override fun append(str: String) {
             this.joiner.add(str)
         }
@@ -72,67 +72,7 @@ interface Appender {
         override fun toString(): String = this.joiner.toString()
     }
 
-    class Later(private val appender: Appender): Appender {
-        private val appends = mutableListOf<String>()
-
-        override fun append(str: String) {
-            this.appends.add(str)
-        }
-
-        override fun flush() {
-            this.appends.forEach {
-                this.appender.append(it)
-            }
-
-            this.appends.clear()
-            this.appender.flush()
-        }
-
-        override fun toString(): String = this.appender.toString()
+    companion object {
+        internal infix fun String.indent(ident: String) = this.split("\n").map { "$ident$it" }.joinToString("\n")
     }
-
-    class BufferedJoiner(private val joiner: StringJoiner, val appender: Appender): Appender {
-        var flushed = false
-
-        override fun append(str: String) {
-            this.joiner.add(str)
-        }
-
-        override fun flush() {
-            if(!flushed) {
-                this.appender.append(this.joiner.toString())
-                this.appender.flush()
-                flushed = true
-            }
-
-        }
-
-        override fun toString(): String = this.joiner.toString()
-    }
-
-    class Buffered(private val appender: Appender): Appender {
-        private val buffer = StringBuilder()
-
-        override fun append(str: String) {
-            this.buffer.append(str)
-        }
-
-        override fun flush() {
-            val str = this.buffer.toString()
-            this.buffer.setLength(0)
-            this.appender.append(str)
-            this.appender.flush()
-        }
-
-        override fun toString(): String = this.appender.toString()
-    }
-
-    class NoFlush(private val appender: Appender): Appender by appender {
-        override fun flush() {
-
-        }
-
-        override fun toString(): String = this.appender.toString()
-    }
-
 }

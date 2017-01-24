@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2016 JonathanxD <${email}>
+ *      Copyright (c) 2017 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -28,11 +28,14 @@
 package com.github.jonathanxd.bytecodedisassembler
 
 import org.objectweb.asm.Label
+import org.objectweb.asm.tree.LabelNode
 
-internal class LabelMapper {
+class LabelMapper {
 
     private var lastLabelN = 0
     private val labels = mutableMapOf<Label, String>()
+
+    fun getLabelName(label: LabelNode): String? = this.getLabelName(label.label)
 
     fun getLabelName(label: Label?): String? {
         if(label == null)

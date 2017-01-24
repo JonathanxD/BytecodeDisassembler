@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2016 JonathanxD <${email}>
+ *      Copyright (c) 2017 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -28,18 +28,38 @@
 package com.github.jonathanxd.bytecodedisassembler
 
 import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.tree.ClassNode
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.security.MessageDigest
 import java.util.*
+
+fun main(args: Array<String>) {
+    if (args.isEmpty()) {
+        println("Arguments: [file] <appendLastModifiedTime(true/false)> <hash(true/false)> <appendFrames(true/false)>")
+        return
+    }
+
+    val file = args[0]
+    val appendLastModifiedTime = args.getOrElse(1, { "true" }).toBoolean()
+    val hash = args.getOrElse(2, { "true" }).toBoolean()
+    val appendFrames = args.getOrElse(3, { "true" }).toBoolean()
+
+    println(Disassembler.disassemble(
+            path = Paths.get(file),
+            appendLastModifiedTime = appendLastModifiedTime,
+            hash = hash,
+            appendFrames = appendFrames)
+    )
+}
 
 object Disassembler {
 
     @JvmStatic
     @JvmOverloads
-    fun disassemble(path: Path, appendLastModifiedTime: Boolean = false, hash: Boolean = false, appendFrames: Boolean = true, classVisitor: ClassVisitor? = null): String {
+    fun disassemble(path: Path, appendLastModifiedTime: Boolean = false, hash: Boolean = false, appendFrames: Boolean = true): String {
         val appender = Appender.Joiner(StringJoiner("\n"))
 
         if (appendLastModifiedTime) {
@@ -47,17 +67,16 @@ object Disassembler {
         }
 
         return disassemble(
-                appendFrames = appendFrames,
                 bytes = Files.readAllBytes(path),
-                appender = appender,
-                classVisitor = classVisitor,
-                hash = hash
+                hash = hash,
+                appendFrames = appendFrames,
+                appender = appender
         )
     }
 
     @JvmStatic
     @JvmOverloads
-    fun disassemble(bytes: ByteArray, hash: Boolean = false, appendFrames: Boolean = true, appender: Appender = Appender.Joiner(StringJoiner("\n")), classVisitor: ClassVisitor? = null): String {
+    fun disassemble(bytes: ByteArray, hash: Boolean = false, appendFrames: Boolean = true, appender: Appender = Appender.Joiner(StringJoiner("\n"))): String {
         if (hash) {
             val digest = MessageDigest.getInstance("MD5")
             val hash = digest.digest(bytes)
@@ -75,17 +94,11 @@ object Disassembler {
         }
 
         val cr = ClassReader(bytes)
+        val cn = ClassNode(Opcodes.ASM5)
+        cr.accept(cn, 0)
 
 
-        cr.accept(
-                DisassemblerClassVisitor(
-                        appendFrames = appendFrames,
-                        appender = appender,
-                        api = Opcodes.ASM5,
-                        parent = classVisitor
-                ),
-                0
-        )
+        ClassNodeParser.parse(cn, appender, appendFrames)
 
         return appender.toString()
     }

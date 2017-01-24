@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2016 JonathanxD <${email}>
+ *      Copyright (c) 2017 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -27,7 +27,6 @@
  */
 package com.github.jonathanxd.bytecodedisassembler
 
-import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.util.Printer
@@ -269,23 +268,6 @@ internal object Util {
         if (str != null) this.add(str)
     }
 
-    inline fun visitAnnotation(appender: Appender, desc: String?, api: Int, end: String = "", superInvk: () -> AnnotationVisitor?): AnnotationVisitor {
-        return this.visitAnnotation(appender, { Appender.Buffered(it) }, desc, api, end, superInvk)
-    }
-
-    inline fun visitAnnotation(appender: Appender, func: (Appender) -> Appender, desc: String?, api: Int, end: String = "", superInvk: () -> AnnotationVisitor?): AnnotationVisitor {
-
-        val bufferedAppender = func(appender)
-        appender.append("")
-
-        val x = if (desc != null) {
-            bufferedAppender.append("@${Util.parseType(desc)}(")
-            ")"
-        } else ""
-
-        return DisassemblerAnnotationVisitor(Appender.BufferedJoiner(StringJoiner(", "), bufferedAppender), "$x$end", api, superInvk())
-    }
-
     fun parseArrayValue(value: Any?): String {
         if (value == null)
             return "null"
@@ -298,6 +280,10 @@ internal object Util {
             val ret = Array<Any?>(length) { java.lang.reflect.Array.get(value, it) }
 
             return parseArray(ret)
+        }
+
+        if (value is List<*>) {
+            return parseArray(value.toTypedArray())
         }
 
         return value.toString()
