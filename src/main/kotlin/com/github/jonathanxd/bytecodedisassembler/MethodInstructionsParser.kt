@@ -107,7 +107,25 @@ object MethodInstructionsParser {
 
                     val bsmArgsStr = it.bsmArgs.orEmpty().map { (it as? Handle)?.asStr() ?: it.toString() }
 
-                    normalAppender.append("invokedynamic ${it.name}${Util.parseDesc(it.desc)} (bootstrap: ${it.bsm.asStr()}, args: $bsmArgsStr)")
+                    normalAppender.append("invokedynamic ${it.name}${Util.parseDesc(it.desc)} [")
+
+                    val ex = Appender.TwoIndent(normalAppender)
+
+                    ex.append("// Bootstrap method")
+                    ex.append("${it.bsm.asStr()} [")
+
+                    val ex2 = Appender.FourIndent(normalAppender)
+
+                    if(bsmArgsStr.isNotEmpty()) {
+                        ex2.append("// Arguments")
+                        bsmArgsStr.forEach {
+                            ex2.append(it)
+                        }
+                    }
+
+                    ex.append("]")
+
+                    normalAppender.append("]")
                 }
                 is LabelNode -> {
                     it.label?.let {
