@@ -37,8 +37,8 @@ object ClassNodeParser {
     fun parse(classNode: ClassNode, appender: Appender, appendFrames: Boolean) {
         appender.append("")
 
-        appender.append("version: ${Util.parseVersion(classNode.version)}")
-        appender.append("access: ${Util.parseAccess(Util.CLASS, classNode.access)}")
+        appender.append("version: ${Util.parseVersion(classNode.version)} (${classNode.version})")
+        appender.append("access: ${Util.parseAccess(Util.CLASS, classNode.access)} (${classNode.access})")
 
         appender.append("")
 
@@ -174,7 +174,7 @@ object ClassNodeParser {
     }
 
     fun parseInnerClassNode(innerClassNode: InnerClassNode): String {
-        return "!access: ${Util.parseAccess(Util.CLASS, innerClassNode.access)}\n" +
+        return "!access: ${Util.parseAccess(Util.CLASS, innerClassNode.access)} (${innerClassNode.access})\n" +
                 "${Util.parseAsModifiersStr(Util.CLASS, innerClassNode.access)} ${Util.parseType(innerClassNode.outerName)}.${innerClassNode.innerName} -> ${Util.parseType(innerClassNode.name)}"
     }
 
@@ -183,7 +183,7 @@ object ClassNodeParser {
         val buffer = StringBuilder()
 
 
-        buffer.append("!access: ${Util.parseAccess(Util.FIELD, fieldNode.access)}\n")
+        buffer.append("!access: ${Util.parseAccess(Util.FIELD, fieldNode.access)} (${fieldNode.access})\n")
 
         fieldNode.signature?.let {
             buffer.append("!signature: $it\n")
@@ -209,7 +209,7 @@ object ClassNodeParser {
     fun parseMethodNode(methodNode: MethodNode, appendFrames: Boolean): String {
         val appender = Appender.Joiner(StringJoiner("\n"))
 
-        appender.append("!access: ${Util.parseAccess(Util.FIELD, methodNode.access)}")
+        appender.append("!access: ${Util.parseAccess(Util.METHOD, methodNode.access)} (${methodNode.access})")
 
         methodNode.signature?.let {
             appender.append("!signature: $it")
@@ -230,7 +230,7 @@ object ClassNodeParser {
         val parameterList = methodNode.parameters.orEmpty() as List<ParameterNode>
 
         parameterList.forEach {
-            appender.append("!parameter[name: ${it.name}, access: ${it.access} (${Util.parseAccess(Util.PARAMETER, it.access)})]")
+            appender.append("!parameter[name: ${it.name}, access: ${Util.parseAccess(Util.PARAMETER, it.access)} (${it.access})]")
         }
 
         val parameterAnnotations = ((methodNode.visibleParameterAnnotations.orEmpty() as Array<List<*>>) + (methodNode.invisibleParameterAnnotations.orEmpty() as Array<List<*>>)) as Array<List<AnnotationNode>>

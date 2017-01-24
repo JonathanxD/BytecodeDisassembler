@@ -29,6 +29,7 @@ package com.github.jonathanxd.bytecodedisassembler
 
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 
 object MethodInstructionsParser {
@@ -85,7 +86,12 @@ object MethodInstructionsParser {
                         else it
                     }
 
-                    normalAppender.append("ldc $cst              // type: ${cst.javaClass.canonicalName}")
+                    val type = if (cst is Type)
+                        Class::class.java.canonicalName
+                    else
+                        cst.javaClass.canonicalName
+
+                    normalAppender.append("ldc $cst              // type: $type")
                 }
                 is IntInsnNode -> {
                     if (it.operand == Opcodes.NEWARRAY) {
@@ -115,7 +121,7 @@ object MethodInstructionsParser {
                 is InsnNode -> it.apply { normalAppender.append(Util.getOpcodeName(opcode)) }
                 is IincInsnNode -> it.apply { normalAppender.append("iinc $`var` $incr") }
                 is LineNumberNode -> it.apply {
-                    val ext = if(start != null) " -> ${labelMapper.getLabelName(start)}" else ""
+                    val ext = if (start != null) " -> ${labelMapper.getLabelName(start)}" else ""
                     shortAppender.append(" LINE $line$ext")
                 }
                 is FieldInsnNode -> it.apply {
