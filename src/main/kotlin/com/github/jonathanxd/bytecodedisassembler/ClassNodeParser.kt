@@ -314,7 +314,7 @@ object ClassNodeParser {
                 val signature = it.signature
                 val type = Util.parseType(it.desc)
 
-                indented.append("index: ${it.index}, start: $startName, end: $endName, type: $type, signature: $signature")
+                indented.append("index: ${it.index}, name: ${it.name}, start: $startName, end: $endName, type: $type, signature: $signature")
             }
 
             twoIndented.append("}")
