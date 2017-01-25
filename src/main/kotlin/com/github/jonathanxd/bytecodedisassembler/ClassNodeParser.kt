@@ -310,7 +310,7 @@ object ClassNodeParser {
 
             localVariables.forEach {
                 val startName = mapper.getLabelName(it.start.label)
-                val endName = mapper.getLabelName(it.start.label)
+                val endName = mapper.getLabelName(it.end.label)
                 val signature = it.signature
                 val type = Util.parseType(it.desc)
 
