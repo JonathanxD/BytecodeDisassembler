@@ -293,7 +293,7 @@ object ClassNodeParser {
 
             tryCatchBlocks.forEach {
                 val startName = mapper.getLabelName(it.start.label)
-                val endName = mapper.getLabelName(it.start.label)
+                val endName = mapper.getLabelName(it.end.label)
                 val handlerName = mapper.getLabelName(it.handler.label)
                 val exceptionName = Util.parseType(it.type)
 
