@@ -97,7 +97,7 @@ object MethodInstructionsParser {
                     if (it.operand == Opcodes.NEWARRAY) {
                         normalAppender.append("newarray ${Util.getTypeName(it.operand)}")
                     } else {
-                        normalAppender.append("${Util.getOpcodeName(it.opcode)} $it.operand")
+                        normalAppender.append("${Util.getOpcodeName(it.opcode)} ${it.operand}")
                     }
                 }
                 is TypeInsnNode -> normalAppender.append("${Util.getOpcodeName(it.opcode)} ${Util.parseType(it.desc)}")
