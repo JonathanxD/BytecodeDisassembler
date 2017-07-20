@@ -38,19 +38,19 @@ class LabelMapper {
     fun getLabelName(label: LabelNode): String? = this.getLabelName(label.label)
 
     fun getLabelName(label: Label?): String? {
-        if(label == null)
+        if (label == null)
             return "null"
 
-        if(labels.containsKey(label)) {
-            return labels[label]!!
+        return if (this.labels.containsKey(label)) {
+            this.labels[label]!!
         } else {
-            val labelName = "Label_$lastLabelN"
+            val labelName = "Label_${this.lastLabelN}"
 
-            ++lastLabelN
+            this.lastLabelN++
 
-            labels[label] = labelName
+            this.labels[label] = labelName
 
-            return labelName
+            labelName
         }
     }
 

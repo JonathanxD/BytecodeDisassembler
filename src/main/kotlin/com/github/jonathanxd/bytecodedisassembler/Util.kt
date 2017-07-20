@@ -29,12 +29,13 @@ package com.github.jonathanxd.bytecodedisassembler
 
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
+import org.objectweb.asm.tree.LabelNode
 import org.objectweb.asm.util.Printer
 import java.util.*
 
 internal object Util {
 
-    val specialCache = mapOf(
+    private val specialCache = mapOf(
             0 to "TOP",
             1 to "INTEGER",
             2 to "FLOAT",
@@ -45,7 +46,7 @@ internal object Util {
 
     )
 
-    val frameCache = mapOf(
+    private val frameCache = mapOf(
             1 to "F_NEW",
 
             0 to "F_FULL",
@@ -76,7 +77,7 @@ internal object Util {
         if (desc == null)
             return null
 
-        return Type.getMethodType(desc).argumentTypes.map { it.className }.joinToString()
+        return Type.getMethodType(desc).argumentTypes.joinToString { it.className }
     }
 
     fun parseDesc(desc: String?): String? {
@@ -90,7 +91,7 @@ internal object Util {
         if (type == null)
             return null
 
-        if(!type.startsWith("L") && type.length > 1)
+        if (!type.startsWith("L") && type.length > 1)
             return Type.getObjectType(type).className ?: type
 
         val clName = Type.getType(type).className
@@ -111,9 +112,8 @@ internal object Util {
         else -> "Unknown"
     }
 
-    fun parseAccess(elementType: Int, access: Int): String {
-        return fromAccess(elementType, access).joinToString()
-    }
+    fun parseAccess(elementType: Int, access: Int): String =
+            fromAccess(elementType, access).joinToString()
 
     fun parseAsModifiersStr(elementType: Int, access: Int): String {
         val joiner = StringJoiner(" ")
@@ -180,7 +180,7 @@ internal object Util {
         return joiner.toString()
     }
 
-    fun fromAccess(elementType: Int, access: Int): Collection<String> {
+    private fun fromAccess(elementType: Int, access: Int): Collection<String> {
 
         val modifiers = mutableSetOf<String>()
 
@@ -264,10 +264,10 @@ internal object Util {
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    inline infix fun Int.eq(other: Int) = (this and other) != 0
+    inline private infix fun Int.eq(other: Int) = (this and other) != 0
 
     @Suppress("NOTHING_TO_INLINE")
-    inline fun StringJoiner.addNotNull(str: String?): Unit {
+    inline private fun StringJoiner.addNotNull(str: String?) {
         if (str != null) this.add(str)
     }
 
@@ -292,11 +292,10 @@ internal object Util {
         return value.toString()
     }
 
-    private fun parseArray(array: Array<out Any?>): String {
-        return array.map { this.parseArrayValue(it) }.joinToString(separator = ", ", prefix = "{", postfix = "}")
-    }
+    private fun parseArray(array: Array<out Any?>): String =
+            array.joinToString(separator = ", ", prefix = "{", postfix = "}") { this.parseArrayValue(it) }
 
-    fun parseLocalsOrStack(array: Array<out Any?>?): String {
+    fun parseLocalsOrStack(array: Array<out Any?>?, labelMapper: LabelMapper): String {
         if (array == null)
             return "{}"
 
@@ -307,14 +306,13 @@ internal object Util {
 
         array.forEach {
             joiner.add(
-                    if (it == null)
-                        "null"
-                    else if (it is Int)
-                        Util.getSpecialName(it)
-                    else if (it is String)
-                        Util.parseType(it)
-                    else
-                        it.toString()
+                    when (it) {
+                        null -> "null"
+                        is Int -> "Primitive[${Util.getSpecialName(it)}]"
+                        is String -> "Reference[${Util.parseType(it)}]"
+                        is LabelNode -> "Label[${labelMapper.getLabelName(it)}]"
+                        else -> "Unknown[$it]"
+                    }
             )
         }
 
@@ -329,7 +327,7 @@ internal object Util {
         return Printer.OPCODES[opcode]!!.toLowerCase()
     }
 
-    fun getSpecialName(specialCode: Int): String {
+    private fun getSpecialName(specialCode: Int): String {
         if (!specialCache.containsKey(specialCode))
             throw IllegalArgumentException("Cannot find $specialCode in special opcode name cache")
 

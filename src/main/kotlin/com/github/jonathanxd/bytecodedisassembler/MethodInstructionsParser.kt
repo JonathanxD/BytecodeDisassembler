@@ -34,16 +34,20 @@ import org.objectweb.asm.tree.*
 
 object MethodInstructionsParser {
 
-    internal fun parse(instructions: List<AbstractInsnNode>, labelMapper: LabelMapper, normalAppender: Appender, shortAppender: Appender, appendFrames: Boolean) {
+    internal fun parse(instructions: List<AbstractInsnNode>,
+                       labelMapper: LabelMapper,
+                       normalAppender: Appender,
+                       shortAppender: Appender,
+                       appendFrames: Boolean) {
 
-        instructions.forEachIndexed { i, it ->
+        instructions.forEachIndexed { _, it ->
             when (it) {
                 is MultiANewArrayInsnNode -> normalAppender.append("multiANewArray ${Util.parseType(it.desc)} ${it.dims}")
                 is FrameNode -> {
                     if (appendFrames) {
                         val typeName = Util.getFrameName(it.type)
-                        val localStr = Util.parseLocalsOrStack(it.local?.toTypedArray().orEmpty())
-                        val stackStr = Util.parseLocalsOrStack(it.stack?.toTypedArray().orEmpty())
+                        val localStr = Util.parseLocalsOrStack(it.local?.toTypedArray().orEmpty(), labelMapper)
+                        val stackStr = Util.parseLocalsOrStack(it.stack?.toTypedArray().orEmpty(), labelMapper)
 
                         shortAppender.append(" FRAME[type: $typeName, locals: ${it.local.orEmpty().size}, local: $localStr, stacks: ${it.stack.orEmpty().size}, stack: $stackStr]")
                     }
@@ -116,7 +120,7 @@ object MethodInstructionsParser {
 
                     val ex2 = Appender.FourIndent(normalAppender)
 
-                    if(bsmArgsStr.isNotEmpty()) {
+                    if (bsmArgsStr.isNotEmpty()) {
                         ex2.append("// Arguments")
                         bsmArgsStr.forEach {
                             ex2.append(it)

@@ -52,7 +52,7 @@ object ClassNodeParser {
             appender.append("}")
         }
 
-        if(classNode.sourceFile != null || classNode.sourceDebug != null)
+        if (classNode.sourceFile != null || classNode.sourceDebug != null)
             appender.append("")
 
         classNode.outerClass?.let {
@@ -67,7 +67,7 @@ object ClassNodeParser {
             appender.append("outerMethodDesc: ${Util.parseDesc(it)}")
         }
 
-        if(classNode.outerClass != null || classNode.outerMethod != null || classNode.outerMethodDesc != null)
+        if (classNode.outerClass != null || classNode.outerMethod != null || classNode.outerMethodDesc != null)
             appender.append("")
 
         val modsStr = Util.parseAsModifiersStr(Util.CLASS, classNode.access)
@@ -84,16 +84,16 @@ object ClassNodeParser {
 
         appender.append("")
 
-        val idented = Appender.FourIndent(appender)
+        val indented = Appender.FourIndent(appender)
 
         // Inner classes
         val innerClasses = classNode.innerClasses.orEmpty() as List<InnerClassNode>
 
         innerClasses.forEach {
-            idented.append(parseInnerClassNode(it))
+            indented.append(parseInnerClassNode(it))
         }
 
-        if(innerClasses.isNotEmpty())
+        if (innerClasses.isNotEmpty())
             appender.append("")
 
         // Fields
@@ -101,10 +101,10 @@ object ClassNodeParser {
         val fields = classNode.fields.orEmpty() as List<FieldNode>
 
         fields.forEach {
-            idented.append(parseFieldNode(it))
+            indented.append(parseFieldNode(it))
         }
 
-        if(fields.isNotEmpty())
+        if (fields.isNotEmpty())
             appender.append("")
 
         // Methods
@@ -112,7 +112,7 @@ object ClassNodeParser {
         val methods = classNode.methods.orEmpty() as List<MethodNode>
 
         methods.forEach {
-            idented.append(parseMethodNode(it, appendFrames))
+            indented.append(parseMethodNode(it, appendFrames))
         }
 
         appender.append("}")
@@ -120,7 +120,7 @@ object ClassNodeParser {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun parseAnnotationNode(annotationNode: AnnotationNode): String {
+    private fun parseAnnotationNode(annotationNode: AnnotationNode): String {
         val desc = annotationNode.desc
         val buffer = StringBuilder()
 
@@ -138,7 +138,7 @@ object ClassNodeParser {
         return buffer.toString()
     }
 
-    fun parseAnnotationValue(name: String?, value: Any?, buffer: StringBuilder) {
+    private fun parseAnnotationValue(name: String?, value: Any?, buffer: StringBuilder) {
         name?.let {
             buffer.append("$it = ")
         }
@@ -173,13 +173,13 @@ object ClassNodeParser {
             buffer.append(Util.parseArrayValue(value))
     }
 
-    fun parseInnerClassNode(innerClassNode: InnerClassNode): String {
+    private fun parseInnerClassNode(innerClassNode: InnerClassNode): String {
         return "!access: ${Util.parseAccess(Util.CLASS, innerClassNode.access)} (${innerClassNode.access})\n" +
                 "${Util.parseAsModifiersStr(Util.CLASS, innerClassNode.access)} ${Util.parseType(innerClassNode.outerName)}.${innerClassNode.innerName} -> ${Util.parseType(innerClassNode.name)}"
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun parseFieldNode(fieldNode: FieldNode): String {
+    private fun parseFieldNode(fieldNode: FieldNode): String {
         val buffer = StringBuilder()
 
 
@@ -190,7 +190,7 @@ object ClassNodeParser {
         }
 
         val annotations = (fieldNode.visibleAnnotations.orEmpty() + fieldNode.invisibleAnnotations.orEmpty()) as List<AnnotationNode>
-        if(annotations.isNotEmpty()) {
+        if (annotations.isNotEmpty()) {
             annotations.forEach {
                 buffer.append(parseAnnotationNode(it))
                 buffer.append("\n")
@@ -199,14 +199,14 @@ object ClassNodeParser {
 
         buffer.append("${Util.parseAsModifiersStr(Util.FIELD, fieldNode.access)} ${Util.parseType(fieldNode.desc)} ${fieldNode.name}")
 
-        if(fieldNode.value != null)
+        if (fieldNode.value != null)
             buffer.append(" = ${fieldNode.value}")
 
         return buffer.toString()
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun parseMethodNode(methodNode: MethodNode, appendFrames: Boolean): String {
+    private fun parseMethodNode(methodNode: MethodNode, appendFrames: Boolean): String {
         val appender = Appender.Joiner(StringJoiner("\n"))
 
         appender.append("!access: ${Util.parseAccess(Util.METHOD, methodNode.access)} (${methodNode.access})")
@@ -215,12 +215,13 @@ object ClassNodeParser {
             appender.append("!signature: $it")
         }
 
-        methodNode.annotationDefault?.let{
+        methodNode.annotationDefault?.let {
             appender.append("!annotationDefault: ${parseAnnotationValue(null, it, StringBuilder())}")
         }
 
-        val throws = methodNode.exceptions?.let { it as List<String>
-            if(it.isNotEmpty())
+        val throws = methodNode.exceptions?.let {
+            it as List<String>
+            if (it.isNotEmpty())
                 " throws ${it.map { Util.parseType(it) }.joinToString(" ")}"
             else
                 ""
@@ -235,7 +236,7 @@ object ClassNodeParser {
 
         val parameterAnnotations = ((methodNode.visibleParameterAnnotations.orEmpty() as Array<List<*>>) + (methodNode.invisibleParameterAnnotations.orEmpty() as Array<List<*>>)) as Array<List<AnnotationNode>>
 
-        if(parameterAnnotations.isNotEmpty()) {
+        if (parameterAnnotations.isNotEmpty()) {
             appender.append("!parametersAnnotations [")
 
             val twoIndented = Appender.TwoIndent(appender)
@@ -257,7 +258,7 @@ object ClassNodeParser {
 
         val annotations = (methodNode.visibleAnnotations.orEmpty() + methodNode.invisibleAnnotations.orEmpty()) as List<AnnotationNode>
 
-        if(annotations.isNotEmpty()) {
+        if (annotations.isNotEmpty()) {
             annotations.forEach {
                 appender.append(parseAnnotationNode(it))
             }
@@ -277,18 +278,18 @@ object ClassNodeParser {
 
         val insnList = methodNode.instructions
 
-        insnList?.let { if(it.size() > 0) it[0] }
+        insnList?.let { if (it.size() > 0) it[0] }
 
         val instructions = insnList?.toArray().orEmpty().filterNotNull()
 
-        // Map labe names
-        instructions.forEach { if(it is LabelNode) mapper.getLabelName(it.label) }
+        // Map label names
+        instructions.forEach { if (it is LabelNode) mapper.getLabelName(it.label) }
 
         MethodInstructionsParser.parse(instructions, mapper, indented, twoIndented, appendFrames)
 
         val tryCatchBlocks = methodNode.tryCatchBlocks.orEmpty() as List<TryCatchBlockNode>
 
-        if(tryCatchBlocks.isNotEmpty()) {
+        if (tryCatchBlocks.isNotEmpty()) {
             twoIndented.append("TryCatchBlocks {")
 
             tryCatchBlocks.forEach {
@@ -305,7 +306,7 @@ object ClassNodeParser {
 
         val localVariables = methodNode.localVariables.orEmpty() as List<LocalVariableNode>
 
-        if(localVariables.isNotEmpty()) {
+        if (localVariables.isNotEmpty()) {
             twoIndented.append("LocalVariables {")
 
             localVariables.forEach {

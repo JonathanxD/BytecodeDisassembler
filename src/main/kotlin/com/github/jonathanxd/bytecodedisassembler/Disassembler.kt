@@ -68,7 +68,7 @@ object Disassembler {
 
         return disassemble(
                 bytes = Files.readAllBytes(path),
-                hash = hash,
+                appendHash = hash,
                 appendFrames = appendFrames,
                 appender = appender
         )
@@ -76,13 +76,16 @@ object Disassembler {
 
     @JvmStatic
     @JvmOverloads
-    fun disassemble(bytes: ByteArray, hash: Boolean = false, appendFrames: Boolean = true, appender: Appender = Appender.Joiner(StringJoiner("\n"))): String {
-        if (hash) {
+    fun disassemble(bytes: ByteArray,
+                    appendHash: Boolean = false,
+                    appendFrames: Boolean = true,
+                    appender: Appender = Appender.Joiner(StringJoiner("\n"))): String {
+        if (appendHash) {
             val digest = MessageDigest.getInstance("MD5")
             val hash = digest.digest(bytes)
             val hex = StringBuilder()
 
-            for (i in 0..hash.size - 1) {
+            for (i in 0 until hash.size) {
                 if (0xff and hash[i].toInt() < 0x10) {
                     hex.append("0" + Integer.toHexString(0xFF and hash[i].toInt()))
                 } else {
