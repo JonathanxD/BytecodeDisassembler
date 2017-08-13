@@ -91,7 +91,7 @@ internal object Util {
         if (type == null)
             return null
 
-        if (!type.startsWith("L") && type.length > 1)
+        if ((!type.startsWith("L") || !type.endsWith(";")) && type.length > 1)
             return Type.getObjectType(type).className ?: type
 
         val clName = Type.getType(type).className
