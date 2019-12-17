@@ -246,7 +246,7 @@ object ClassNodeParser {
 
                 twoIndented.append("[$i] {")
 
-                list.forEach {
+                list?.forEach {
                     indent.append(parseAnnotationNode(it))
                 }
 
