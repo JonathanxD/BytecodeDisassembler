@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2017 JonathanxD <jonathan.scripter@programmer.net>
+ *      Copyright (c) 2020 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -69,6 +69,10 @@ object ClassNodeParser {
 
         if (classNode.outerClass != null || classNode.outerMethod != null || classNode.outerMethodDesc != null)
             appender.append("")
+
+        appender.append("!signature: ${classNode.signature}")
+        appender.append("!extends: ${classNode.superName}")
+        appender.append("!implements: ${classNode.interfaces}")
 
         val modsStr = Util.parseAsModifiersStr(Util.CLASS, classNode.access)
         val ext = if (classNode.superName != null) " extends ${Util.parseType(classNode.superName)}" else ""
