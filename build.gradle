@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.0'
+    ext.kotlin_version = '1.4.32'
 
     repositories {
         mavenCentral()
@@ -11,12 +11,12 @@ buildscript {
 }
 
 plugins {
-    id 'com.github.hierynomus.license' version '0.13.1'
-    id 'com.github.johnrengelman.shadow' version '1.2.4'
+    id 'com.github.hierynomus.license' version '0.15.0'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 group 'com.github.jonathanxd'
-version '2.1.0'
+version '2.2.0'
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
