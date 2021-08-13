@@ -25,33 +25,41 @@
  *      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *      THE SOFTWARE.
  */
-package com.github.jonathanxd.bytecodedisassembler
-
-import org.objectweb.asm.Label
-import org.objectweb.asm.tree.LabelNode
-
-class LabelMapper {
-
-    private var lastLabelN = 0
-    private val labels = mutableMapOf<Label, String>()
-
-    fun getLabelName(label: LabelNode): String? = this.getLabelName(label.label)
-
-    fun getLabelName(label: Label?): String? {
-        if (label == null)
-            return "null"
-
-        return if (this.labels.containsKey(label)) {
-            this.labels[label]!!
-        } else {
-            val labelName = "Label_${this.lastLabelN}"
-
-            this.lastLabelN++
-
-            this.labels[label] = labelName
-
-            labelName
-        }
+public class DeepInner {
+    private String field = "XSD";
+    
+    public DeepInner() {
+        (new Inner()).call();
+    }
+    
+    protected DeepInner(String str) {
+        System.out.println(str);
     }
 
+    public void mm() {
+        System.out.println("A");
+    }
+    
+    public class Inner {
+    	public DeepInner a = new DeepInner("Hello");
+    	public Inner2 b = new Inner2();
+
+	protected String call() {
+            System.out.println(DeepInner.this.field);
+	    DeepInner.this.mm();
+            new Inner2().call2();
+	    return "A";
+	}
+
+        public class Inner2 {
+            private Inner2() {
+            }
+            
+            private String call2() {
+                System.out.println(DeepInner.this.field);
+                DeepInner.this.mm();
+                return "A";
+            }
+        }
+    }
 }

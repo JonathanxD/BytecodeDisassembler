@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2020 JonathanxD <jonathan.scripter@programmer.net>
+ *      Copyright (c) 2021 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -65,6 +65,72 @@ public class DisassemblerTest {
     public void annotationTest() {
         final String disassembled = disassemble("/AnnotationTest_MyAnnotation_Result.class");
         System.out.println(disassembled);
+    }
+
+    @Test
+    public void itfTest() {
+        final String disassembled = disassemble("/Itf.class");
+        System.out.println(disassembled);
+    }
+
+    @Test
+    public void moduleTest() {
+        final String disassembled = disassemble("/mod/a/module-info.class");
+        System.out.println(disassembled);
+    }
+
+    @Test
+    public void modulebTest() {
+        final String disassembled = disassemble("/mod/b/module-info.class");
+        System.out.println(disassembled);
+    }
+
+    @Test
+    public void recordTest() {
+        final String disassembled = disassemble("/Person.class");
+        System.out.println(disassembled);
+    }
+
+    @Test
+    public void indyConcat() {
+        final String disassembled = disassemble("/IndyConcat.class");
+        System.out.println(disassembled);
+    }
+
+    @Test
+    public void deepInnerTest() {
+        System.out.println("=================== DeepInner ===================");
+        String disassembled = disassemble("/DeepInner.class");
+        System.out.println(disassembled);
+        System.out.println("=================================================");
+        System.out.println("================ DeepInner$Inner ================");
+        disassembled = disassemble("/DeepInner$Inner.class");
+        System.out.println(disassembled);
+        System.out.println("=================================================");
+        System.out.println("============ DeepInner$Inner$Inner2  ============");
+        disassembled = disassemble("/DeepInner$Inner$Inner2.class");
+        System.out.println(disassembled);
+        System.out.println("=================================================");
+    }
+
+    @Test
+    public void sealedTest() {
+        System.out.println("==================== Sealed  ====================");
+        String disassembled = disassemble("/Sealed.class");
+        System.out.println(disassembled);
+        System.out.println("=================================================");
+        System.out.println("==================== Circle  ====================");
+        disassembled = disassemble("/Circle.class");
+        System.out.println(disassembled);
+        System.out.println("=================================================");
+        System.out.println("==================== Square  ====================");
+        disassembled = disassemble("/Square.class");
+        System.out.println(disassembled);
+        System.out.println("=================================================");
+        System.out.println("=================== Rectangle ===================");
+        disassembled = disassemble("/Rectangle.class");
+        System.out.println(disassembled);
+        System.out.println("=================================================");
     }
 
     private String disassemble(String resourceName) {

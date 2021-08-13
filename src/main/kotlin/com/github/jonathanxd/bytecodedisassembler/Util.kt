@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2020 JonathanxD <jonathan.scripter@programmer.net>
+ *      Copyright (c) 2021 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -84,7 +84,12 @@ internal object Util {
         if (desc == null)
             return null
 
-        return "(${parseParams(desc)})${parseRet(desc)}"
+        return if (desc.startsWith("(")) {
+            "(${parseParams(desc)})${parseRet(desc)}"
+        } else {
+            ":${parseType(desc)}"
+        }
+
     }
 
     fun parseType(type: String?): String? {
@@ -100,6 +105,14 @@ internal object Util {
     }
 
     fun parseVersion(version: Int) = when (version) {
+        61 -> "Java 17"
+        60 -> "Java 16"
+        59 -> "Java 15"
+        58 -> "Java 14"
+        57 -> "Java 13"
+        56 -> "Java 12"
+        55 -> "Java 11"
+        54 -> "Java 10"
         53 -> "Java 9"
         52 -> "Java 8"
         51 -> "Java 7"
@@ -114,6 +127,17 @@ internal object Util {
 
     fun parseAccess(elementType: Int, access: Int): String =
             fromAccess(elementType, access).joinToString()
+
+    fun parseClassKind(access: Int): String =
+        when {
+            access eq Opcodes.ACC_INTERFACE -> "interface"
+            access eq Opcodes.ACC_ENUM -> "enum"
+            access eq Opcodes.ACC_RECORD -> "record"
+            access eq Opcodes.ACC_ABSTRACT -> "abstract class"
+            access eq Opcodes.ACC_ANNOTATION -> "@interface"
+            access eq Opcodes.ACC_STATIC -> "static class"
+            else -> "class"
+        }
 
     fun parseAsModifiersStr(elementType: Int, access: Int): String {
         val joiner = StringJoiner(" ")
@@ -142,7 +166,7 @@ internal object Util {
         if (elementType == CLASS || elementType == METHOD) {
             joiner.addNotNull(
                     when {
-                        access eq Opcodes.ACC_ABSTRACT -> "abstract"
+                        access eq Opcodes.ACC_ABSTRACT && !(access eq Opcodes.ACC_INTERFACE) -> "abstract"
                         else -> null
                     }
             )
@@ -324,14 +348,14 @@ internal object Util {
         if (opcode < 0 || opcode >= Printer.OPCODES.size)
             throw IllegalArgumentException("Cannot find $opcode in opcode name cache")
 
-        return Printer.OPCODES[opcode]!!.toLowerCase()
+        return Printer.OPCODES[opcode]!!.lowercase()
     }
 
     private fun getSpecialName(specialCode: Int): String {
         if (!specialCache.containsKey(specialCode))
             throw IllegalArgumentException("Cannot find $specialCode in special opcode name cache")
 
-        return specialCache[specialCode]!!.toLowerCase()
+        return specialCache[specialCode]!!.lowercase()
     }
 
     fun getFrameName(frameCode: Int): String {
@@ -345,14 +369,14 @@ internal object Util {
         if (typeCode < 0 || typeCode >= Printer.TYPES.size)
             throw IllegalArgumentException("Cannot find $typeCode in typeCode name cache")
 
-        return Printer.TYPES[typeCode]!!.toLowerCase()
+        return Printer.TYPES[typeCode]!!.lowercase()
     }
 
     fun getHandleTagName(handleTagCode: Int): String {
         if (handleTagCode < 0 || handleTagCode >= Printer.HANDLE_TAG.size)
             throw IllegalArgumentException("Cannot find $handleTagCode in handle tag name cache")
 
-        return Printer.HANDLE_TAG[handleTagCode]!!.toLowerCase()
+        return Printer.HANDLE_TAG[handleTagCode]!!.lowercase()
     }
 
 }

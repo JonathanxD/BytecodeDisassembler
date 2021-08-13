@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2020 JonathanxD <jonathan.scripter@programmer.net>
+ *      Copyright (c) 2021 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *

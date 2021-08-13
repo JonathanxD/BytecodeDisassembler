@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2020 JonathanxD <jonathan.scripter@programmer.net>
+ *      Copyright (c) 2021 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -27,6 +27,7 @@
  */
 package com.github.jonathanxd.bytecodedisassembler
 
+import org.objectweb.asm.Attribute
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import java.util.*
@@ -74,6 +75,91 @@ object ClassNodeParser {
         appender.append("!extends: ${classNode.superName}")
         appender.append("!implements: ${classNode.interfaces}")
 
+        classNode.nestHostClass?.let {
+            appender.append("!NestHost: $it")
+        }
+
+        classNode.nestMembers.orEmpty().forEach {
+            appender.append("!NestMember: $it")
+        }
+
+        classNode.attrs.orEmpty().forEach {
+            it.readAttribute(appender)
+        }
+
+        val isModule = classNode.module != null
+
+        if (isModule) {
+            classNode.module?.let {
+                val modsStr = Util.parseAsModifiersStr(Util.CLASS, it.access)
+                val modsstr = if (modsStr.isEmpty()) "" else "$modsStr "
+                appender.append("${modsstr}module ${it.name} {")
+                val fi = Appender.FourIndent(appender)
+
+                fi.append("!mainClass: ${it.mainClass}")
+                fi.append("!version: ${it.version}")
+
+                val packages = it.packages.orEmpty()
+                if (packages.isNotEmpty()) {
+                    fi.append("packages: $packages")
+                }
+
+                val exports = it.exports.orEmpty()
+                if (exports.isNotEmpty()) {
+                    fi.append("exports {")
+                    val fi1 = Appender.FourIndent(fi)
+                    exports.forEach {
+                        fi1.append("!modifiers: ${Util.parseAsModifiersStr(Util.CLASS, it.access)}")
+                        fi1.append("!package: ${it.packaze}")
+                        fi1.append("!modules: ${it.modules}")
+                    }
+                    fi.append("}")
+                }
+
+                val opens = it.opens.orEmpty()
+                if (opens.isNotEmpty()) {
+                    fi.append("opens {")
+                    val fi1 = Appender.FourIndent(fi)
+                    opens.forEach {
+                        fi1.append("!modifiers: ${Util.parseAsModifiersStr(Util.CLASS, it.access)}")
+                        fi1.append("!package: ${it.packaze}")
+                        fi1.append("!modules: ${it.modules}")
+                    }
+                    fi.append("}")
+                }
+
+                val uses = it.uses.orEmpty()
+                if (uses.isNotEmpty()) {
+                    fi.append("uses: $uses")
+                }
+
+                val provides = it.provides.orEmpty()
+                if (provides.isNotEmpty()) {
+                    fi.append("provides {")
+                    val fi1 = Appender.FourIndent(fi)
+                    provides.forEach {
+                        fi1.append("!service: ${it.service}")
+                        fi1.append("!providers: ${it.providers}")
+                    }
+                    fi.append("}")
+                }
+
+                val requires = it.requires.orEmpty()
+                if (requires.isNotEmpty()) {
+                    fi.append("requires {")
+                    val fi1 = Appender.FourIndent(fi)
+                    requires.forEach {
+                        fi1.append("!modifiers: ${Util.parseAsModifiersStr(Util.CLASS, it.access)}")
+                        fi1.append("!module: ${it.module}")
+                        fi1.append("!version: ${it.version}")
+                    }
+                    fi.append("}")
+                }
+
+                //appender.append("}")
+            }
+        }
+
         val modsStr = Util.parseAsModifiersStr(Util.CLASS, classNode.access)
         val ext = if (classNode.superName != null) " extends ${Util.parseType(classNode.superName)}" else ""
         val ext2 = if (classNode.interfaces != null && classNode.interfaces.isNotEmpty()) " implements ${classNode.interfaces.map { Util.parseType(it as String) }.joinToString()}" else ""
@@ -84,7 +170,18 @@ object ClassNodeParser {
             appender.append(parseAnnotationNode(it))
         }
 
-        appender.append("$modsStr class ${Util.parseType(classNode.name)}$ext$ext2 {")
+        val permits = classNode.permittedSubclasses.orEmpty()
+
+        permits.forEach {
+            appender.append("!permits: $it")
+        }
+
+        val sealed = if (permits.isNotEmpty()) "sealed " else ""
+        val modsstr = if (modsStr.isEmpty()) "" else "$modsStr "
+        val kind = Util.parseClassKind(classNode.access)
+        if (!isModule) {
+            appender.append("$modsstr$sealed$kind ${Util.parseType(classNode.name)}$ext$ext2 {")
+        }
 
         appender.append("")
 
@@ -93,8 +190,15 @@ object ClassNodeParser {
         // Inner classes
         val innerClasses = classNode.innerClasses.orEmpty() as List<InnerClassNode>
 
-        innerClasses.forEach {
-            indented.append(parseInnerClassNode(it))
+        if (innerClasses.isNotEmpty()) {
+            indented.append("inner {")
+            val sub = Appender.FourIndent(indented)
+
+            innerClasses.forEach {
+                sub.append(parseInnerClassNode(it))
+            }
+
+            indented.append("}")
         }
 
         if (innerClasses.isNotEmpty())
@@ -175,6 +279,15 @@ object ClassNodeParser {
             buffer.append("}")
         } else
             buffer.append(Util.parseArrayValue(value))
+    }
+
+    private fun Attribute.readAttribute(appender: Appender) {
+        appender.append("!Attribute: {")
+        val fi = Appender.FourIndent(appender)
+        fi.append("Type: ${this.type}")
+        fi.append("Unknown: ${this.isUnknown}")
+        fi.append("CodeAttribute: ${this.isCodeAttribute}")
+        appender.append("}")
     }
 
     private fun parseInnerClassNode(innerClassNode: InnerClassNode): String {

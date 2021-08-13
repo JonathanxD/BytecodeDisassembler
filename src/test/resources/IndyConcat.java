@@ -25,33 +25,40 @@
  *      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *      THE SOFTWARE.
  */
-package com.github.jonathanxd.bytecodedisassembler
+public class IndyConcat {
 
-import org.objectweb.asm.Label
-import org.objectweb.asm.tree.LabelNode
+    private static final int b = compute();
+    private static final String CONS = "AAA" + b;
 
-class LabelMapper {
-
-    private var lastLabelN = 0
-    private val labels = mutableMapOf<Label, String>()
-
-    fun getLabelName(label: LabelNode): String? = this.getLabelName(label.label)
-
-    fun getLabelName(label: Label?): String? {
-        if (label == null)
-            return "null"
-
-        return if (this.labels.containsKey(label)) {
-            this.labels[label]!!
-        } else {
-            val labelName = "Label_${this.lastLabelN}"
-
-            this.lastLabelN++
-
-            this.labels[label] = labelName
-
-            labelName
-        }
+    public static String concat(int a, int b, String c) {
+        return ""+a+""+c+""+b;
     }
 
+    public static String concatObjs(String a, double b, Object... objs) {
+        return a+""+b+""+objs;
+    }
+    
+    public static String concatObjs(String a, double b, int x, Object... objs) {
+        return a+""+x+""+b+""+objs;
+    }
+
+    public static String concatObjs2(String a, double b, int x, Object... objs) {
+        return a+" - x - "+x+" - x2 - "+b+" - x3 - "+objs;
+    }
+
+    public static String concatObjs2Cons(String a, double b, int x, Object... objs) {
+        return a+" - x - "+x+" - x2 - "+b+" - x3 - "+objs+CONS;
+    }
+    
+    private static int compute() {
+        return 8;
+    }
+    
+    private static String haba(String a, String b) {
+       return a + b;
+    }
+    
+    private static String habaUe(String a, String b) {
+       return ""+""+"";
+    }
 }

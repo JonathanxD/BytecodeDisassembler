@@ -25,33 +25,4 @@
  *      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *      THE SOFTWARE.
  */
-package com.github.jonathanxd.bytecodedisassembler
-
-import org.objectweb.asm.Label
-import org.objectweb.asm.tree.LabelNode
-
-class LabelMapper {
-
-    private var lastLabelN = 0
-    private val labels = mutableMapOf<Label, String>()
-
-    fun getLabelName(label: LabelNode): String? = this.getLabelName(label.label)
-
-    fun getLabelName(label: Label?): String? {
-        if (label == null)
-            return "null"
-
-        return if (this.labels.containsKey(label)) {
-            this.labels[label]!!
-        } else {
-            val labelName = "Label_${this.lastLabelN}"
-
-            this.lastLabelN++
-
-            this.labels[label] = labelName
-
-            labelName
-        }
-    }
-
-}
+public final class Rectangle extends Sealed {}

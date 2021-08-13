@@ -3,7 +3,7 @@
  *
  *         The MIT License (MIT)
  *
- *      Copyright (c) 2020 JonathanxD <jonathan.scripter@programmer.net>
+ *      Copyright (c) 2021 JonathanxD <jonathan.scripter@programmer.net>
  *      Copyright (c) contributors
  *
  *
@@ -27,10 +27,12 @@
  */
 package com.github.jonathanxd.bytecodedisassembler
 
+import org.objectweb.asm.ConstantDynamic
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
+import org.objectweb.asm.util.Printer
 
 object MethodInstructionsParser {
 
@@ -109,7 +111,10 @@ object MethodInstructionsParser {
                     fun Handle?.asStr() =
                             if (this == null) "null" else "${Util.parseType(this.owner)}.${this.name}${Util.parseDesc(this.desc)} (tag: ${Util.getHandleTagName(this.tag)}, itf: ${this.isInterface})"
 
-                    val bsmArgsStr = it.bsmArgs.orEmpty().map { (it as? Handle)?.asStr() ?: it.toString() }
+                    val bsmArgsStr = it.bsmArgs.orEmpty().map {
+                        (it as? Handle)?.asStr()
+                            ?: if (it is String) it.surrogate() else it.toString()
+                    }
 
                     normalAppender.append("invokedynamic ${it.name}${Util.parseDesc(it.desc)} [")
 
@@ -153,5 +158,11 @@ object MethodInstructionsParser {
             }
         }
 
+    }
+
+    private fun String.surrogate(): String {
+        val sb = StringBuilder()
+        Printer.appendString(sb, this)
+        return sb.toString()
     }
 }
