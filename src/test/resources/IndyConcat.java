@@ -61,4 +61,20 @@ public class IndyConcat {
     private static String habaUe(String a, String b) {
        return ""+""+"";
     }
+    
+    private static String habaUe2(String a, String b) {
+       return ""+""+"" + String.class;
+    }
+
+    private static String habaUe23(String a, String b) {
+       return a + b + "a"+"b"+a+"a"+b+"a"+a+"b";
+    }
+    
+    private static String kkk() {
+       String a = "hello";
+       char c = ' ';
+       String b = "world";
+       return a + c + b;
+    }
+
 }
