@@ -17,7 +17,7 @@ plugins {
 }
 
 group 'com.github.jonathanxd'
-version '2.4.0'
+version '2.4.1'
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
@@ -110,7 +110,7 @@ publishing {
         }
         maven {
             name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/JonathanxD/jwiutils"
+            url = "https://maven.pkg.github.com/JonathanxD/bytecodedisassembler"
             credentials {
                 username = System.getenv("USERNAME")
                 password = System.getenv("TOKEN")
